@@ -178,6 +178,7 @@
     "react-native-share": "^3.0.0",
     "react-native-swipe-list-view": "^2.2.0",
     "react-native-tcp": "^3.3.2",
+    "react-native-tor": "^0.1.6",
     "react-native-touch-id": "^4.4.1",
     "react-native-track-player": "1.1.4",
     "react-native-translucent-modal": "^1.1.2",

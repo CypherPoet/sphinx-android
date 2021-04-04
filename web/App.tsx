@@ -45,7 +45,7 @@ function Wrap(){
 }
 
 function App(){
-  const {user,ui,chats} = useStores()
+  const {user,ui} = useStores()
   const [pinned,setPinned] = useState(false)
   const [signedUp, setSignedUp] = useState(false)
   const [welcome, setWelcome] = useState(false)
@@ -140,7 +140,7 @@ const Loading=styled.div`
   display:flex;
   align-items:center;
   justify-content:center;
-  background:linear-gradient(145deg, #A68CFF 0%, #6A8FFF) 0% 0% / cover; 
+  background:linear-gradient(145deg, #A68CFF 0%, #6A8FFF) 0% 0% / cover;
 `
 
 export default Wrap

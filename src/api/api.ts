@@ -1,3 +1,6 @@
+import { userStore } from "../store/user"
+import { performTorRequest, RequestMethod as RNTORRequestMethod } from "./tor-utils"
+
 export default class API {
   constructor(url:string, tokenKey?:string, tokenValue?:string, resetIPCallback?:Function) {
     this.get = addMethod('GET',url)
@@ -21,22 +24,27 @@ export default class API {
 
 const TIMEOUT = 20000
 
-function addMethod(m: string, rootUrl: string): Function {
+function addMethod(methodName: string, rootUrl: string): Function {
   return async function (url: string, data: any, encoding?: string) {
-    if(!data) data={}
-    
+    data = data || {}
+
     try {
       const skip = isPublic(rootUrl + url)
+
       if (this.tokenKey && !this.tokenValue && !skip) {
         // throw new Error("no token")
         return
       }
+
       const headers: { [key: string]: string } = {}
+
       if(this.tokenKey && this.tokenValue) {
         headers[this.tokenKey] = this.tokenValue
       }
+
       const opts: { [key: string]: any } = { mode: 'cors' }
-      if (m === 'POST' || m === 'PUT') {
+
+      if (methodName === 'POST' || methodName === 'PUT') {
         if (encoding) {
           headers['Content-Type'] = encoding
           if(encoding==='application/x-www-form-urlencoded') {
@@ -49,41 +57,44 @@ function addMethod(m: string, rootUrl: string): Function {
           opts.body = JSON.stringify(data)
         }
       }
-      if (m === 'UPLOAD') {
+      if (methodName === 'UPLOAD') {
         headers['Content-Type'] = 'multipart/form-data'
         opts.body = data
         console.log("UPLOAD DATA:",data)
       }
       opts.headers = new Headers(headers)
 
-      opts.method = m === 'UPLOAD' ? 'POST' : m
-      if (m === 'BLOB') opts.method = 'GET'
+      opts.method = methodName === 'UPLOAD' ? 'POST' : methodName
+      if (methodName === 'BLOB') opts.method = 'GET'
 
       // console.log('=>',opts.method,rootUrl + url)
 
-      const r = await fetchTimeout(rootUrl + url, TIMEOUT, opts)
-      if (!r.ok) {
-        console.log('Not OK!',r.status,url)
+      const result = await fetchTimeout(rootUrl + url, TIMEOUT, opts)
+
+      if (!result.ok) {
+        console.log('Not OK!',result.status,url)
         return
       }
-      let res
-      if (m === 'BLOB') res = await r.blob()
-      else {
-        res = await r.json()
-        if (res.token) {
+
+      let resultPayload
+      if (methodName === 'BLOB') {
+        resultPayload = await result.blob()
+      } else {
+        resultPayload = await result.json()
+        if (resultPayload.token) {
           // localStorage.setItem(tokenName, res.token)
         }
-        if (res.error) {
-          console.warn(res.error)
+        if (resultPayload.error) {
+          console.warn(resultPayload.error)
           return
         }
-        if (res.status && res.status==='ok') { // invite server
-          return res.object
+        if (resultPayload.status && resultPayload.status==='ok') { // invite server
+          return resultPayload.object
         }
-        if (res.success && res.response) { // relay
-          return res.response 
+        if (resultPayload.success && resultPayload.response) { // relay
+          return resultPayload.response
         }
-        return res
+        return resultPayload
       }
     } catch (e) { // 20 is an "abort" i guess
       console.warn(e)
@@ -117,9 +128,22 @@ function makeSearchParams(params){
   }).join('&')
 }
 
-const fetchTimeout = (url, ms, options = {}) => {
+const fetchTimeout = (url, timeoutMS, options = {}) => {
   const controller = new AbortController();
-  const promise = fetch(url, { signal: controller.signal, ...options });
-  const timeout = setTimeout(() => controller.abort(), ms);
+
+  let promise;
+
+  if (userStore.isTorEnabled) {
+    promise = performTorRequest({
+      url,
+      method: options.method as RNTORRequestMethod,
+      headers: options.headers,
+      trustSSL: true,
+    })
+  } else {
+    promise = fetch(url, { signal: controller.signal, ...options });
+  }
+
+  const timeout = setTimeout(() => controller.abort(), timeoutMS);
   return promise.finally(() => clearTimeout(timeout));
 };

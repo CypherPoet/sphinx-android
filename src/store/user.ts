@@ -40,6 +40,9 @@ class UserStore {
   currentIP: string = ''
 
   @persist @observable
+  isTorEnabled: boolean = false
+
+  @persist @observable
   authToken: string = ''
 
   @persist @observable
@@ -57,6 +60,7 @@ class UserStore {
     this.myid = 0
     this.publicKey = ''
     this.currentIP = ''
+    this.isTorEnabled = false
     this.authToken = ''
     this.deviceId = ''
     this.onboardStep = 0

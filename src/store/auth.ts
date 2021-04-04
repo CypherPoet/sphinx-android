@@ -1,5 +1,5 @@
 import { observable, action } from 'mobx'
-import { relay, composeAPI } from '../api'
+import { relay } from '../api'
 import { persist } from 'mobx-persist'
 import { userStore } from './user'
 import { Linking } from 'react-native'

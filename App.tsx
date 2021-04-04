@@ -22,9 +22,9 @@ import { I18nManager} from 'react-native';
 
 declare var global: {HermesInternal: null | {}}
 
-try { 
+try {
   I18nManager.allowRTL(false);
-} 
+}
 catch (e) {
   console.log(e);
 }
@@ -95,7 +95,13 @@ function App() {
       const isSignedUp = (user.currentIP && user.authToken && !user.onboardStep)?true:false
       setSignedUp(isSignedUp)
       if(isSignedUp){
-        instantiateRelay(user.currentIP, user.authToken, connectedHandler, disconnectedHandler, resetIP)
+        instantiateRelay(
+          user.currentIP,
+          user.authToken,
+          connectedHandler,
+          disconnectedHandler,
+          resetIP
+        )
       }
       const pinWasEnteredRecently = await wasEnteredRecently()
       if(pinWasEnteredRecently) setPinned(true)
@@ -148,7 +154,7 @@ function App() {
           {!signedUp && <Onboard onFinish={()=>{
             user.finishOnboard() // clear out things
             setSignedUp(true) // signed up w key export
-            setPinned(true)   // also PIN has been set 
+            setPinned(true)   // also PIN has been set
           }} />}
         </PaperProvider>
       </NavigationContainer>
